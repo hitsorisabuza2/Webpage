@@ -59,22 +59,32 @@
         var board = null;
         var game = new Chess();
         var $status = $('#status');
+        var squareSelected = null;
+
+        function removeHighlights () {
+            $('#board .square-55d63').css('background', '');
+        }
+
+        function highlightSquare (square) {
+            var $square = $('#board .square-' + square);
+            var background = '#a9a9a9';
+            if ($square.hasClass('black-3c85d')) {
+                background = '#696969';
+            }
+            $square.css('background', background);
+        }
 
         function onDragStart (source, piece, position, orientation) {
-            // Do not pick up pieces if the game is over
             if (game.game_over()) return false;
-
-            // Only pick up pieces for White
             if (piece.search(/^b/) !== -1) return false;
+            removeHighlights();
+            squareSelected = null;
         }
 
         function makeBestMove () {
             var possibleMoves = game.moves();
-
-            // Game over
             if (possibleMoves.length === 0) return;
 
-            // Simple AI: Evaluate material after move
             var bestMove = null;
             var bestValue = -9999;
 
@@ -120,19 +130,15 @@
         }
 
         function onDrop (source, target) {
-            // See if the move is legal
             var move = game.move({
                 from: source,
                 to: target,
-                promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                promotion: 'q'
             });
 
-            // Illegal move
             if (move === null) return 'snapback';
 
             updateStatus();
-            
-            // Make computer move after a short delay
             window.setTimeout(makeBestMove, 250);
         }
 
@@ -142,7 +148,6 @@
 
         function updateStatus () {
             var status = '';
-
             var moveColor = 'White';
             if (game.turn() === 'b') {
                 moveColor = 'Black';
@@ -172,9 +177,50 @@
         };
         board = Chessboard('board', config);
 
+        // Click to move logic
+        $('#board').on('click', '.square-55d63', function () {
+            if (game.game_over() || game.turn() === 'b') return;
+
+            var square = $(this).attr('data-square');
+
+            if (squareSelected) {
+                var move = game.move({
+                    from: squareSelected,
+                    to: square,
+                    promotion: 'q'
+                });
+
+                if (move === null) {
+                    var piece = game.get(square);
+                    if (piece && piece.color === 'w') {
+                        squareSelected = square;
+                        removeHighlights();
+                        highlightSquare(square);
+                    } else {
+                        squareSelected = null;
+                        removeHighlights();
+                    }
+                } else {
+                    board.position(game.fen());
+                    updateStatus();
+                    squareSelected = null;
+                    removeHighlights();
+                    window.setTimeout(makeBestMove, 250);
+                }
+            } else {
+                var piece = game.get(square);
+                if (piece && piece.color === 'w') {
+                    squareSelected = square;
+                    highlightSquare(square);
+                }
+            }
+        });
+
         $('#resetBtn').on('click', function() {
             game.reset();
             board.start();
+            squareSelected = null;
+            removeHighlights();
             updateStatus();
         });
 
