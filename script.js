@@ -96,34 +96,43 @@ function getPieceValue(piece, x, y) {
     return piece.color === 'w' ? absoluteValue : -absoluteValue;
 }
 
-function evaluateBoard(board) {
+function evaluateBoard(game) {
     var totalEvaluation = 0;
+    var board = game.board();
     for (var i = 0; i < 8; i++) {
         for (var j = 0; j < 8; j++) {
-            totalEvaluation += getPieceValue(board[i][j], i, j);
+            // i = row, j = col. Pass x=j, y=i to getPieceValue to map to [y][x] correctly
+            totalEvaluation += getPieceValue(board[i][j], j, i);
         }
     }
     return totalEvaluation;
 }
 
-function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
-    if (depth === 0) return -evaluateBoard(game.board());
-    var newGameMoves = game.moves();
+function minimax(depth, game, alpha, beta, isMaximizingPlayer) {
+    if (depth === 0) return evaluateBoard(game);
+
+    var moves = game.moves();
+
+    if (moves.length === 0) {
+        if (game.in_checkmate()) return isMaximizingPlayer ? -99999 : 99999;
+        return 0;
+    }
+
     if (isMaximizingPlayer) {
-        var bestEval = -9999;
-        for (var i = 0; i < newGameMoves.length; i++) {
-            game.move(newGameMoves[i]);
-            bestEval = Math.max(bestEval, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+        var bestEval = -99999;
+        for (var i = 0; i < moves.length; i++) {
+            game.move(moves[i]);
+            bestEval = Math.max(bestEval, minimax(depth - 1, game, alpha, beta, false));
             game.undo();
             alpha = Math.max(alpha, bestEval);
             if (beta <= alpha) return bestEval;
         }
         return bestEval;
     } else {
-        var bestEval = 9999;
-        for (var i = 0; i < newGameMoves.length; i++) {
-            game.move(newGameMoves[i]);
-            bestEval = Math.min(bestEval, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+        var bestEval = 99999;
+        for (var i = 0; i < moves.length; i++) {
+            game.move(moves[i]);
+            bestEval = Math.min(bestEval, minimax(depth - 1, game, alpha, beta, true));
             game.undo();
             beta = Math.min(beta, bestEval);
             if (beta <= alpha) return bestEval;
@@ -133,18 +142,22 @@ function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
 }
 
 function getBestMove(game) {
-    var newGameMoves = game.moves();
-    var bestMove = null;
-    var bestValue = -9999;
+    if (game.game_over()) return null;
 
-    for (var i = 0; i < newGameMoves.length; i++) {
-        var newGameMove = newGameMoves[i];
-        game.move(newGameMove);
-        var boardValue = minimax(game, 3, -10000, 10000, false);
+    var moves = game.moves();
+    var bestMove = null;
+    var bestValue = 99999; // AI is Black, seeks to minimize evaluateBoard
+
+    for (var i = 0; i < moves.length; i++) {
+        var move = moves[i];
+        game.move(move);
+        // Now it's White's turn, who will try to maximize
+        var boardValue = minimax(3, game, -100000, 100000, true);
         game.undo();
-        if (boardValue > bestValue) {
+
+        if (boardValue < bestValue) {
             bestValue = boardValue;
-            bestMove = newGameMove;
+            bestMove = move;
         }
     }
     return bestMove;
@@ -157,9 +170,11 @@ function onDragStart(source, piece, position, orientation) {
 
 function makeBestMove() {
     var bestMove = getBestMove(game);
-    game.move(bestMove);
-    board.position(game.fen());
-    updateStatus();
+    if (bestMove) {
+        game.move(bestMove);
+        board.position(game.fen());
+        updateStatus();
+    }
 }
 
 function onDrop(source, target) {
@@ -170,8 +185,10 @@ function onDrop(source, target) {
     });
     if (move === null) return 'snapback';
 
-    window.setTimeout(makeBestMove, 250);
     updateStatus();
+    if (!game.game_over()) {
+        window.setTimeout(makeBestMove, 250);
+    }
 }
 
 function onSnapEnd() {
