@@ -74,13 +74,6 @@
             $square.css('background', background);
         }
 
-        function onDragStart (source, piece, position, orientation) {
-            if (game.game_over()) return false;
-            if (piece.search(/^b/) !== -1) return false;
-            removeHighlights();
-            squareSelected = null;
-        }
-
         function makeBestMove () {
             var possibleMoves = game.moves();
             if (possibleMoves.length === 0) return;
@@ -129,19 +122,6 @@
             return piece.color === 'w' ? absoluteValue : -absoluteValue;
         }
 
-        function onDrop (source, target) {
-            var move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q'
-            });
-
-            if (move === null) return 'snapback';
-
-            updateStatus();
-            window.setTimeout(makeBestMove, 250);
-        }
-
         function onSnapEnd () {
             board.position(game.fen());
         }
@@ -168,10 +148,8 @@
         }
 
         var config = {
-            draggable: true,
+            draggable: false,
             position: 'start',
-            onDragStart: onDragStart,
-            onDrop: onDrop,
             onSnapEnd: onSnapEnd,
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
@@ -191,6 +169,7 @@
                 });
 
                 if (move === null) {
+                    // If move is illegal, check if we clicked another of our own pieces
                     var piece = game.get(square);
                     if (piece && piece.color === 'w') {
                         squareSelected = square;
