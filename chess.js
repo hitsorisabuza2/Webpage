@@ -226,4 +226,8 @@ $(document).ready(function() {
         removeHighlights();
         updateStatus();
     });
+
+    $('#homeBtn').on('click', function() {
+        window.location.href = 'index.html';
+    });
 });
