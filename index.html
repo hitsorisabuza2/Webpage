@@ -74,17 +74,21 @@
             pointer-events: none;
         }
 
-        /* Neon Theme Styles */
+        /* Improved Neon Theme Styles */
         body.neon-theme {
-            background-color: #050505;
+            background-color: #0f111a;
+            color: #e0e0e0;
+            text-shadow: none;
+        }
+        .neon-theme #title, .neon-theme .status {
             color: #39ff14;
-            text-shadow: 0 0 5px #39ff14;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.6);
         }
         .neon-theme button {
-            background-color: transparent;
-            border: 2px solid #39ff14;
+            background-color: #1a1c2c;
+            border: 1px solid #39ff14;
             color: #39ff14;
-            box-shadow: 0 0 8px #39ff14;
+            box-shadow: 0 0 4px rgba(57, 255, 20, 0.3);
         }
         .neon-theme button:active {
             background-color: #39ff14;
@@ -93,22 +97,22 @@
         .neon-theme #modeBtn {
             border-color: #00ffff;
             color: #00ffff;
-            box-shadow: 0 0 8px #00ffff;
+            box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
         }
         .neon-theme #themeBtn {
             border-color: #ff00ff;
             color: #ff00ff;
-            box-shadow: 0 0 8px #ff00ff;
+            box-shadow: 0 0 4px rgba(255, 0, 255, 0.3);
         }
         .neon-theme .legal-move-hint {
-            background: rgba(57, 255, 20, 0.6);
+            background: rgba(57, 255, 20, 0.4);
             box-shadow: 0 0 10px #39ff14;
         }
         .neon-theme .square-55d63.white-1e1d7 {
-            background-color: #1a1a1a !important;
+            background-color: #2e3142 !important;
         }
         .neon-theme .square-55d63.black-3c85d {
-            background-color: #0a0a0a !important;
+            background-color: #1a1c2c !important;
         }
     </style>
 </head>
@@ -152,9 +156,9 @@
         function highlightSquare (square) {
             var $square = $('#board .square-' + square);
             var isNeon = $('body').hasClass('neon-theme');
-            var background = isNeon ? '#444' : '#a9a9a9';
+            var background = isNeon ? '#4a4e69' : '#a9a9a9';
             if ($square.hasClass('black-3c85d')) {
-                background = isNeon ? '#222' : '#696969';
+                background = isNeon ? '#353b52' : '#696969';
             }
             $square.css('background', background);
         }
