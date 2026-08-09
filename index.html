@@ -59,6 +59,18 @@
         #modeBtn {
             background-color: #2980b9;
         }
+        /* Move hints */
+        .legal-move-hint {
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +106,7 @@
 
         function removeHighlights () {
             $('#board .square-55d63').css('background', '');
+            $('.legal-move-hint').remove();
         }
 
         function highlightSquare (square) {
@@ -103,6 +116,20 @@
                 background = '#696969';
             }
             $square.css('background', background);
+        }
+
+        function showLegalMoves (square) {
+            var moves = game.moves({
+                square: square,
+                verbose: true
+            });
+
+            if (moves.length === 0) return;
+
+            for (var i = 0; i < moves.length; i++) {
+                var $square = $('#board .square-' + moves[i].to);
+                $square.append('<div class="legal-move-hint"></div>');
+            }
         }
 
         function makeBestMove () {
@@ -213,6 +240,7 @@
                         squareSelected = square;
                         removeHighlights();
                         highlightSquare(square);
+                        showLegalMoves(square);
                     } else {
                         squareSelected = null;
                         removeHighlights();
@@ -233,6 +261,7 @@
                 if (piece && piece.color === game.turn()) {
                     squareSelected = square;
                     highlightSquare(square);
+                    showLegalMoves(square);
                 }
             }
         });
