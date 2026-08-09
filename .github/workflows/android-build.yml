@@ -28,19 +28,24 @@ jobs:
           java-version: '17'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-      - name: Make Gradle executable
-        if: hashFiles('gradlew') != ''
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
       - name: Build APK
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! -f gradlew ]]; then
-            echo "No gradlew found. Create or open an Android/Gradle project first."
-            exit 1
+          # Use gradlew if it exists, otherwise fall back to system gradle
+          if [[ -f gradlew ]]; then
+            chmod +x gradlew
+            EXECUTABLE="./gradlew"
+          else
+            echo "Warning: gradlew not found, using system gradle"
+            EXECUTABLE="gradle"
           fi
           variant="${{ inputs.variant }}"
-          ./gradlew "assemble${variant^}" --stacktrace
+          $EXECUTABLE "assemble${variant^}" --stacktrace
       - name: Upload APKs
         if: always()
         uses: actions/upload-artifact@v4

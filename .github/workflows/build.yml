@@ -10,11 +10,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
       - name: Build with Gradle
-        run: ./gradlew assembleDebug
+        run: |
+          if [[ -f gradlew ]]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            echo "Warning: gradlew not found, using system gradle"
+            gradle assembleDebug
+          fi
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
